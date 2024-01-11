@@ -8,6 +8,9 @@ const buttonWidth = 10;
 const buttonHeight = 5;
 const margin = "1";
 
+//get parent element font size(a.k.a em) - https://stackoverflow.com/questions/10463518/converting-em-to-px-in-javascript-and-getting-default-font-size
+const em = parseFloat(getComputedStyle(body).fontSize);
+
 class Button {
   constructor(number, color, position, x, y) {
     this.number = number;
@@ -16,16 +19,15 @@ class Button {
   }
 }
 
-class MemoryGame {
+class MemoryButtonGame {
   constructor() {
     this.buttons = [];
     this.originalOrder = [];
     this.currentOrder = [];
     this.timeoutIDs = [];
   }
-  
 
-  createButtons(numButtons) {
+  generateButtons(numButtons) {
     this.buttons = Array.from(
       { length: numButtons },
       (_, index) =>
@@ -61,20 +63,13 @@ class MemoryGame {
 
   // Update the buttons positions
   displayButtons() {
-
     // Clear existing buttons whenever generate buttons.
     this.initScreen(buttonContainer);
 
     this.buttons.forEach((button) => {
       const buttonElement = document.createElement("button");
-      let buttonWidth = 10;
-      let buttonHeight = 5;
-      let buttonMargin = "1";
-
+      buttonElement.classList.add("button-object");
       buttonElement.style.backgroundColor = button.color;
-      buttonElement.style.width = this.sizeInEm(buttonWidth);
-      buttonElement.style.height = this.sizeInEm(buttonHeight);
-      buttonElement.style.marginRight = this.sizeInEm(buttonMargin);
       buttonContainer.appendChild(buttonElement);
 
       const spanElement = document.createElement("span");
@@ -84,8 +79,23 @@ class MemoryGame {
     });
   }
 
-  // checkBoundary(button) {}
+  checkWindowBoundary(button) {
+    let height = window.innerHeight;
+    let width = window.innerWidth;
 
+    //check if the button is out of boundary
+    if (button.position.x + buttonWidth * em > width) {
+      button.position.x = width - buttonWidth * em;
+    } else if (button.position.x < 0) {
+      button.position.x = 0;
+    }
+
+    if (button.position.y + buttonHeight * em > height) {
+      button.position.y = height - buttonHeight * em;
+    } else if (button.position.y < 0) {
+      button.position.y = 0;
+    }
+  }
 
   reRenderButtons() {
     this.initScreen(buttonContainer);
@@ -97,23 +107,19 @@ class MemoryGame {
       buttonElement.style.height = this.sizeInEm(buttonHeight);
       buttonElement.style.marginRight = this.sizeInEm(margin);
 
-        //get parent element font size(a.k.a em) - https://stackoverflow.com/questions/10463518/converting-em-to-px-in-javascript-and-getting-default-font-size
-        let em = parseFloat(getComputedStyle(body).fontSize);
-        console.log("em", em);
-        buttonElement.style.position = "absolute";
-        buttonElement.style.left = button.position.x - buttonWidth * em + "px";
-        buttonElement.style.top = button.position.y - buttonHeight * em + "px";
-        console.log("fix", buttonElement.style.left, buttonElement.style.top);
-
+      buttonElement.style.position = "absolute";
+      
+      buttonElement.style.left = button.position.x - buttonWidth * em + "px";
+      buttonElement.style.top = button.position.y - buttonHeight * em + "px";
+      this.checkWindowBoundary(button);
       buttonContainer.appendChild(buttonElement);
 
       const spanElement = document.createElement("span");
       spanElement.classList.add("button-number-span");
       spanElement.innerText = button.number;
       buttonElement.appendChild(spanElement);
-
-  })
-}
+    });
+  }
 
   getRandomPosition() {
     //get responsive window size
@@ -128,10 +134,9 @@ class MemoryGame {
   mixButtons(callback) {
     this.buttons.forEach((button) => {
       button.position = this.getRandomPosition();
-      console.log("mixed btn pos", button.position);
     });
     this.reRenderButtons();
-    // callback()
+    callback()
   }
 
   playGame(numButtons) {
@@ -167,7 +172,7 @@ class MemoryGame {
 
   //     // Check if all buttons are clicked in order
   //     if (this.currentOrder.length === this.buttons.length) {
-  //       this.displayMessage(messages.excellentMemory);
+  //       this.displayMessage(messages.correctAnswer);
   //       this.startNewGame();
   //     }
   //   } else {
@@ -197,22 +202,24 @@ class MemoryGame {
     alert(message);
   }
 
-  startNewGame() {
+  run() {
     // Clear existing buttons and reset game state
     this.buttons = [];
     this.originalOrder = [];
     this.currentOrder = [];
 
+    document.getElementById("input-container-title").innerHTML =
+      messages.inputTitleText;
     document.getElementById("go-button").addEventListener("click", () => {
       const numOfButtonsInput = document.getElementById("num-of-button-field");
       const numButtons = parseInt(numOfButtonsInput.value);
       console.log("Number of buttons:", numButtons);
 
       if (numButtons < 3 || numButtons > 7) {
-        this.displayMessage(messages.invalidNumber);
+        this.displayMessage(messages.invalidInput);
       } else if (!isNaN(numButtons)) {
         this.hideInputContainer();
-        this.createButtons(numButtons);
+        this.generateButtons(numButtons);
         this.displayButtons();
         this.playGame(numButtons);
         //   }
@@ -224,5 +231,5 @@ class MemoryGame {
   }
 }
 
-const memoryGame = new MemoryGame();
-memoryGame.startNewGame();
+const memoryButtonGame = new MemoryButtonGame();
+memoryButtonGame.run();

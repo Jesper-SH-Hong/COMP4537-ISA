@@ -1,8 +1,8 @@
 const messages = {
-    howManyButtons: "How many buttons to create?",
-    excellentMemory: "Excellent memory!",
+    inputTitleText: "How many buttons to create?",
+    correctAnswer: "Excellent memory!",
     wrongOrder: "Wrong order!",
-    invalidNumber: "Invalid number. Range: 3 to 7.",
+    invalidInput: "Invalid number. Range: 3 to 7.",
     // Add more messages as needed
   };
   
