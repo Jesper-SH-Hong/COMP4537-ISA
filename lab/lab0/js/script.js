@@ -114,21 +114,22 @@ class MemoryButtonGame {
       buttonElement.disabled = true;
       buttonElement.addEventListener("click", () => {
         this.answer.push(button.number);
+        spanElement.style.display = "inline";
 
-        if (this.answer.length === this.solution.length) {
+        // if (this.answer.length === this.solution.length) {
           for (let i = 0; i < this.answer.length; i++) {
             if (this.answer[i] !== this.solution[i]) {
               this.displayMessage(messages.wrongOrder);
               this.showNumbers();
               break;
             } else {
-              if (i === this.answer.length - 1) {
+              if (i === this.solution.length - 1) {
                 this.displayMessage(messages.excellentMemory);
               } else {
                 continue;
               }
             }
-          }
+          // }
         }
       });
 
