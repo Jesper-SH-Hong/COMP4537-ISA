@@ -147,6 +147,7 @@ class MemoryButtonGame {
   }
 
   async mixButtons() {
+    console.log(2);
     for (let index = 0; index < 3; index++) {
       await new Promise((resolve) => {
         setTimeout(() => {
@@ -168,6 +169,7 @@ class MemoryButtonGame {
   }
 
   async playGame() {
+    console.log(1);
     await this.mixButtons();
     this.hideNumbers();
     this.enableButtons();
@@ -217,8 +219,10 @@ class MemoryButtonGame {
         this.displayButtons();
 
         setTimeout(() => {
+          console.log(0);
           this.playGame();
-        }, numButtons * 1000);
+          console.log(4);
+        }, numButtons * 1000 - 2000); // adjust 2 sec for 1st re-rendering in mixButtons().
       }
     });
   }
