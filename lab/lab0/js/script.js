@@ -6,7 +6,7 @@ const buttonWidth = 10;
 const buttonHeight = 5;
 const margin = "1";
 
-//get parent element font size(a.k.a em) - https://stackoverflow.com/questions/10463518/converting-em-to-px-in-javascript-and-getting-default-font-size
+//Get parent element font size(a.k.a em) - https://stackoverflow.com/questions/10463518/converting-em-to-px-in-javascript-and-getting-default-font-size
 const em = parseFloat(getComputedStyle(body).fontSize);
 
 class Button {
@@ -55,10 +55,11 @@ class MemoryButtonGame {
     this.initScreen(buttonContainer);
 
     this.buttons.forEach((button) => {
-      console.log("button", button);
       const buttonElement = document.createElement("button");
       buttonElement.classList.add("button-object");
       buttonElement.style.backgroundColor = button.color;
+      buttonElement.disabled = true;
+
       buttonContainer.appendChild(buttonElement);
 
       const spanElement = document.createElement("span");
@@ -72,7 +73,6 @@ class MemoryButtonGame {
     let height = window.innerHeight;
     let width = window.innerWidth;
 
-    //check if the button is out of boundary
     if (button.position.x + buttonWidth * em > width) {
       button.position.x = width - buttonWidth * em;
     } else if (button.position.x < 0) {
@@ -84,8 +84,8 @@ class MemoryButtonGame {
     } else if (button.position.y < 0) {
       button.position.y = 0;
     }
-    console.log("button.position.x, button.position.y", button.position.x, button.position.y)
-    return {x:button.position.x, y:button.position.y};
+
+    return { x: button.position.x, y: button.position.y };
   }
 
   reRenderButtons() {
@@ -93,6 +93,7 @@ class MemoryButtonGame {
 
     this.buttons.forEach((button) => {
       const buttonElement = document.createElement("button");
+      buttonElement.classList.add("button-object");
       buttonElement.style.backgroundColor = button.color;
       buttonElement.style.width = this.convertToEM(buttonWidth);
       buttonElement.style.height = this.convertToEM(buttonHeight);
@@ -100,13 +101,9 @@ class MemoryButtonGame {
 
       buttonElement.style.position = "absolute";
 
-      // buttonElement.style.left = button.position.x - buttonWidth * em + "px";
-      // buttonElement.style.top = button.position.y - buttonHeight * em + "px";
       let newPos = this.checkWindowBoundary(button);
-      console.log("left, top", newPos.x, newPos.y);
       buttonElement.style.left = newPos.x + "px";
       buttonElement.style.top = newPos.y + "px";
-
 
       buttonContainer.appendChild(buttonElement);
 
@@ -114,25 +111,25 @@ class MemoryButtonGame {
       spanElement.classList.add("button-number-span");
       spanElement.innerText = button.number;
 
+      buttonElement.disabled = true;
       buttonElement.addEventListener("click", () => {
-        console.log(`Button ${button.number} clicked`);
-
         this.answer.push(button.number);
-        console.log(this.solution)
-        console.log(this.answer);
 
         if (this.answer.length === this.solution.length) {
-         for (let i = 0; i < this.answer.length; i++) {
+          for (let i = 0; i < this.answer.length; i++) {
             if (this.answer[i] !== this.solution[i]) {
               this.displayMessage(messages.wrongOrder);
-              this.startNewGame();
-              return;
+              this.showNumbers();
+              break;
             } else {
-            this.displayMessage(messages.correctAnswer);
-            this.startNewGame();
+              if (i === this.answer.length - 1) {
+                this.displayMessage(messages.excellentMemory);
+              } else {
+                continue;
+              }
+            }
           }
         }
-      }
       });
 
       buttonElement.appendChild(spanElement);
@@ -149,50 +146,45 @@ class MemoryButtonGame {
     };
   }
 
-  mixButtons(callback) {
-    this.buttons.forEach((button) => {
-      button.position = this.getRandomPosition();
-    });
-    this.reRenderButtons();
-    callback();
+  async mixButtons() {
+    for (let index = 0; index < 3; index++) {
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          this.buttons.forEach((button) => {
+            button.position = this.getRandomPosition();
+          });
+          this.reRenderButtons();
+          resolve();
+        }, 2000);
+      });
+    }
   }
 
-  playGame(numButtons) {
-    setTimeout(() => {
-      this.mixButtons(() => {
-        this.hideNumbers();
-      });
-    }, numButtons * 100); //TODO: change to 1000
+  enableButtons() {
+    const buttons = document.querySelectorAll(".button-object");
+    buttons.forEach((button) => {
+      button.disabled = false;
+    });
+  }
+
+  async playGame() {
+    await this.mixButtons();
+    this.hideNumbers();
+    this.enableButtons();
   }
 
   hideNumbers() {
     const buttonTextSpan = document.querySelectorAll(".button-number-span");
-    buttonTextSpan.forEach((span) => {
-      span.innerText = "";
+    buttonTextSpan.forEach((button) => {
+      button.style.display = "none";
     });
   }
 
-  handleButtonClick(event) {
-    const clickedButton = event.target;
-    const buttonNumber = parseInt(clickedButton.innerText);
-
-    // Check if the clicked button is in the correct order
-    if (buttonNumber === this.answer.length + 1) {
-      // Correct order
-      this.answer.push(buttonNumber);
-      clickedButton.innerText = buttonNumber; // Reveal the number
-
-      // Check if all buttons are clicked in order
-      if (this.answer.length === this.buttons.length) {
-        this.displayMessage(messages.correctAnswer);
-        this.startNewGame();
-      }
-    } else {
-      // Wrong order
-      this.displayMessage(messages.wrongOrder);
-      this.displayCorrectOrder();
-      this.startNewGame();
-    }
+  showNumbers() {
+    const buttonTextSpan = document.querySelectorAll(".button-number-span");
+    buttonTextSpan.forEach((button) => {
+      button.style.display = "inline";
+    });
   }
 
   hideInputContainer() {
@@ -205,7 +197,7 @@ class MemoryButtonGame {
   }
 
   run() {
-    // Clear existing buttons and reset game state
+    // Reset game state
     this.buttons = [];
     this.solution = [];
     this.answer = [];
@@ -216,21 +208,17 @@ class MemoryButtonGame {
       const numOfButtonsInput = document.getElementById("num-of-button-field");
       const numButtons = parseInt(numOfButtonsInput.value);
 
-      this.solution = [...Array(numButtons)].map((_, index) => index + 1);
-      console.log("Number of buttons:", numButtons);
-      console.log("Solution:", this.solution);
-
       if (numButtons < 3 || numButtons > 7) {
         this.displayMessage(messages.invalidInput);
       } else if (!isNaN(numButtons)) {
+        this.solution = [...Array(numButtons)].map((_, index) => index + 1);
         this.hideInputContainer();
         this.generateButtons(numButtons);
         this.displayButtons();
-        this.playGame(numButtons);
-        //   }
-        //   setTimeout(() => {
-        //     this.hideNumbersAndMakeClickable();
-        //   }, numButtons * 2); //TODO: change to 2000
+
+        setTimeout(() => {
+          this.playGame();
+        }, numButtons * 1000);
       }
     });
   }
