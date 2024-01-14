@@ -1,7 +1,5 @@
 import messages from "../lang/messages/en/user.js";
 
-//#TODO: Check boundary, put x,y in button class?
-
 const buttonContainer = document.getElementById("button-container");
 const body = document.querySelector("body");
 const buttonWidth = 10;
@@ -22,26 +20,16 @@ class Button {
 class MemoryButtonGame {
   constructor() {
     this.buttons = [];
-    this.originalOrder = [];
-    this.currentOrder = [];
-    this.timeoutIDs = [];
+    this.solution = [];
+    this.answer = [];
   }
 
   generateButtons(numButtons) {
-    this.buttons = Array.from(
-      { length: numButtons },
-      (_, index) =>
-        (Button = {
-          number: index + 1,
-          color: this.getRandomColor(),
-          position: { x: 0, y: 0 }, // Initial position (will be updated later)
-        })
-    );
-
-    // deep copy of the buttons array
-    this.originalOrder = [...this.buttons];
-
-    console.log("created buttons");
+    for (let index = 0; index < numButtons; index++) {
+      this.buttons.push(
+        new Button(index + 1, this.getRandomColor(), { x: 0, y: 0 })
+      );
+    }
   }
 
   getRandomColor() {
@@ -57,7 +45,7 @@ class MemoryButtonGame {
     buttonContainer.innerHTML = "";
   }
 
-  sizeInEm(int) {
+  convertToEM(int) {
     return int + "em";
   }
 
@@ -67,6 +55,7 @@ class MemoryButtonGame {
     this.initScreen(buttonContainer);
 
     this.buttons.forEach((button) => {
+      console.log("button", button);
       const buttonElement = document.createElement("button");
       buttonElement.classList.add("button-object");
       buttonElement.style.backgroundColor = button.color;
@@ -95,6 +84,8 @@ class MemoryButtonGame {
     } else if (button.position.y < 0) {
       button.position.y = 0;
     }
+    console.log("button.position.x, button.position.y", button.position.x, button.position.y)
+    return {x:button.position.x, y:button.position.y};
   }
 
   reRenderButtons() {
@@ -103,20 +94,47 @@ class MemoryButtonGame {
     this.buttons.forEach((button) => {
       const buttonElement = document.createElement("button");
       buttonElement.style.backgroundColor = button.color;
-      buttonElement.style.width = this.sizeInEm(buttonWidth);
-      buttonElement.style.height = this.sizeInEm(buttonHeight);
-      buttonElement.style.marginRight = this.sizeInEm(margin);
+      buttonElement.style.width = this.convertToEM(buttonWidth);
+      buttonElement.style.height = this.convertToEM(buttonHeight);
+      buttonElement.style.marginRight = this.convertToEM(margin);
 
       buttonElement.style.position = "absolute";
-      
-      buttonElement.style.left = button.position.x - buttonWidth * em + "px";
-      buttonElement.style.top = button.position.y - buttonHeight * em + "px";
-      this.checkWindowBoundary(button);
+
+      // buttonElement.style.left = button.position.x - buttonWidth * em + "px";
+      // buttonElement.style.top = button.position.y - buttonHeight * em + "px";
+      let newPos = this.checkWindowBoundary(button);
+      console.log("left, top", newPos.x, newPos.y);
+      buttonElement.style.left = newPos.x + "px";
+      buttonElement.style.top = newPos.y + "px";
+
+
       buttonContainer.appendChild(buttonElement);
 
       const spanElement = document.createElement("span");
       spanElement.classList.add("button-number-span");
       spanElement.innerText = button.number;
+
+      buttonElement.addEventListener("click", () => {
+        console.log(`Button ${button.number} clicked`);
+
+        this.answer.push(button.number);
+        console.log(this.solution)
+        console.log(this.answer);
+
+        if (this.answer.length === this.solution.length) {
+         for (let i = 0; i < this.answer.length; i++) {
+            if (this.answer[i] !== this.solution[i]) {
+              this.displayMessage(messages.wrongOrder);
+              this.startNewGame();
+              return;
+            } else {
+            this.displayMessage(messages.correctAnswer);
+            this.startNewGame();
+          }
+        }
+      }
+      });
+
       buttonElement.appendChild(spanElement);
     });
   }
@@ -136,62 +154,46 @@ class MemoryButtonGame {
       button.position = this.getRandomPosition();
     });
     this.reRenderButtons();
-    callback()
+    callback();
   }
 
   playGame(numButtons) {
     setTimeout(() => {
       this.mixButtons(() => {
-        this.hideNumbersAndMakeClickable();
+        this.hideNumbers();
       });
     }, numButtons * 100); //TODO: change to 1000
   }
 
-  hideNumbersAndMakeClickable() {
+  hideNumbers() {
     const buttonTextSpan = document.querySelectorAll(".button-number-span");
     buttonTextSpan.forEach((span) => {
       span.innerText = "";
     });
-
-    // Make buttons clickable
-    // buttonContainer.addEventListener(
-    //   "click",
-    //   this.handleButtonClick.bind(this)
-    // );
   }
 
-  // handleButtonClick(event) {
-  //   const clickedButton = event.target;
-  //   const buttonNumber = parseInt(clickedButton.innerText);
+  handleButtonClick(event) {
+    const clickedButton = event.target;
+    const buttonNumber = parseInt(clickedButton.innerText);
 
-  //   // Check if the clicked button is in the correct order
-  //   if (buttonNumber === this.currentOrder.length + 1) {
-  //     // Correct order
-  //     this.currentOrder.push(buttonNumber);
-  //     clickedButton.innerText = buttonNumber; // Reveal the number
+    // Check if the clicked button is in the correct order
+    if (buttonNumber === this.answer.length + 1) {
+      // Correct order
+      this.answer.push(buttonNumber);
+      clickedButton.innerText = buttonNumber; // Reveal the number
 
-  //     // Check if all buttons are clicked in order
-  //     if (this.currentOrder.length === this.buttons.length) {
-  //       this.displayMessage(messages.correctAnswer);
-  //       this.startNewGame();
-  //     }
-  //   } else {
-  //     // Wrong order
-  //     this.displayMessage(messages.wrongOrder);
-  //     this.displayCorrectOrder();
-  //     this.startNewGame();
-  //   }
-  // }
-
-  // displayCorrectOrder() {
-  //   // Code to reveal the correct order on the buttons
-  //   this.buttons.forEach((button, index) => {
-  //     const buttonElement = document.querySelector(
-  //       `button:nth-child(${index + 1})`
-  //     );
-  //     buttonElement.innerText = button.number;
-  //   });
-  // }
+      // Check if all buttons are clicked in order
+      if (this.answer.length === this.buttons.length) {
+        this.displayMessage(messages.correctAnswer);
+        this.startNewGame();
+      }
+    } else {
+      // Wrong order
+      this.displayMessage(messages.wrongOrder);
+      this.displayCorrectOrder();
+      this.startNewGame();
+    }
+  }
 
   hideInputContainer() {
     const inputContainer = document.getElementById("input-container");
@@ -205,15 +207,18 @@ class MemoryButtonGame {
   run() {
     // Clear existing buttons and reset game state
     this.buttons = [];
-    this.originalOrder = [];
-    this.currentOrder = [];
+    this.solution = [];
+    this.answer = [];
 
     document.getElementById("input-container-title").innerHTML =
       messages.inputTitleText;
     document.getElementById("go-button").addEventListener("click", () => {
       const numOfButtonsInput = document.getElementById("num-of-button-field");
       const numButtons = parseInt(numOfButtonsInput.value);
+
+      this.solution = [...Array(numButtons)].map((_, index) => index + 1);
       console.log("Number of buttons:", numButtons);
+      console.log("Solution:", this.solution);
 
       if (numButtons < 3 || numButtons > 7) {
         this.displayMessage(messages.invalidInput);
