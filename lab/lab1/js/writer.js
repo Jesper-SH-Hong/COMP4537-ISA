@@ -2,9 +2,6 @@ import messages from "../lang/messages/en/user.js";
 
 const noteSection = document.getElementById("note-section");
 const body = document.querySelector("body");
-const noteWidth = 10;
-const noteHeight = 5;
-const margin = 1;
 let noteId = localStorage.length;
 
 function updateTime() {
