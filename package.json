@@ -1,0 +1,19 @@
+{
+  "name": "comp4537-isa",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jesper-SH-Hong/COMP4537-ISA.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jesper-SH-Hong/COMP4537-ISA/issues"
+  },
+  "homepage": "https://github.com/Jesper-SH-Hong/COMP4537-ISA#readme"
+}
