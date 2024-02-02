@@ -1,4 +1,5 @@
 const messages = require("./message/msg.js");
+const contentTypes = messages.contentType;
 const http = require("http");
 const url = require("url");
 let dt = require("./modules/myModule");
@@ -9,25 +10,24 @@ class Server {
   }
 
   generateNamedResponse(name) {
-    console.log(messages);
-    return `${messages.inlineStyleOpen} ${messages.hello} ${name}, ${
-      messages.greeting
-    } ${dt.getDate()} ${messages.inlineStyleClose}`;
+    const greetingMessage = messages.greetingTemplate.replace("%s", name);
+    return `${messages.inlineStyleOpen}${greetingMessage} ${dt.getDate()} ${
+      messages.inlineStyleClose
+    }`;
   }
 
   start() {
     const server = http.createServer((req, res) => {
       const q = url.parse(req.url, true);
-
-      const lab3Path = "/lab3";
+      const lab3Path = messages.path.lab3Path;
 
       if (q.pathname === lab3Path) {
-        res.writeHead(200, { "Content-Type": "text/html" });
+        res.writeHead(200, contentTypes.htmlType);
         let message = this.generateNamedResponse(q.query.name);
         res.end(message);
       } else {
-        res.writeHead(404, { "Content-Type": "text/plain" });
-        res.end("Not Found");
+        res.writeHead(404, contentTypes.plainType);
+        res.end(messages.notFound);
       }
     });
 
