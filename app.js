@@ -22,7 +22,7 @@ const server = http.createServer((req, res) => {
 });
 
 
-
+//hosting the server
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
