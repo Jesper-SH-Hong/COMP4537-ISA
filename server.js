@@ -1,30 +1,39 @@
+const messages = require("./message/msg.js");
 const http = require("http");
 const url = require("url");
 let dt = require("./modules/myModule");
 
-
-const server = http.createServer((req, res) => {
-  const q = url.parse(req.url, true);
-
-  const lab3Path = "/lab3";
-
-  if (q.pathname === lab3Path) {
-    // Handle lab3 route
-    res.writeHead(200, { "Content-Type": "text/html" });
-    res.end(
-      `<span style="color: blue;">Hello ${
-        q.query.name
-      }, What a beautiful day. Server current date and time is: ${dt.getDate()} </span>`
-    );
-  } else {
-    res.writeHead(404, { "Content-Type": "text/plain" });
-    res.end("Not Found");
+class Server {
+  constructor() {
+    this.port = process.env.PORT || 3000;
   }
-});
 
+  generateNamedResponse(name) {
+    console.log(messages);
+    return `${messages.inlineStyleOpen} ${messages.hello} ${name}, ${
+      messages.greeting
+    } ${dt.getDate()} ${messages.inlineStyleClose}`;
+  }
 
-const PORT = process.env.PORT || 3000;
+  start() {
+    const server = http.createServer((req, res) => {
+      const q = url.parse(req.url, true);
 
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+      const lab3Path = "/lab3";
+
+      if (q.pathname === lab3Path) {
+        res.writeHead(200, { "Content-Type": "text/html" });
+        let message = this.generateNamedResponse(q.query.name);
+        res.end(message);
+      } else {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Not Found");
+      }
+    });
+
+    server.listen(this.port);
+  }
+}
+
+const server = new Server();
+server.start();
