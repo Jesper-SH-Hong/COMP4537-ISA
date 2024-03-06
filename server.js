@@ -4,31 +4,43 @@ const http = require("http");
 const url = require("url");
 let dt = require("./modules/myModule");
 
+const STATUS = {
+  OK: 200,
+  BAD_REQUEST: 400,
+  NOT_FOUND: 404,
+};
+
+const mysql = require("mysql");
+const con = mysql.createConnection({
+  host: "localhost",
+  user: "jesperho_nodemysql",
+  password: "nodemysql123",
+  database: "jesperho_nodemysql",
+});
+
 class Server {
   constructor() {
     this.port = process.env.PORT || 3000;
   }
 
-  generateNamedResponse(name) {
-    const greetingMessage = messages.greetingTemplate.replace("%s", name);
-    return `${messages.inlineStyleOpen}${greetingMessage} ${dt.getDate()} ${
-      messages.inlineStyleClose
-    }`;
-  }
-
   start() {
     const server = http.createServer((req, res) => {
-      const q = url.parse(req.url, true);
-      const lab3Path = messages.path.lab3Path;
+      con.connect(function (err) {
+        if (err) throw err;
+        console.log("Connected!");
+        var sql =
+          "CREATE TABLE patient (patientID INT(11) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), dateOfBirth DATETIME)";
+        con.query(sql, function (err, result) {
+          if (err) throw err;
+          console.log("Table created");
+        });
+      });
 
-      if (q.pathname === lab3Path) {
-        res.writeHead(200, contentTypes.htmlType);
-        let message = this.generateNamedResponse(q.query.name);
-        res.end(message);
-      } else {
-        res.writeHead(404, contentTypes.plainType);
-        res.end(messages.notFound);
-      }
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      const q = url.parse(req.url, true);
+
+      res.writeHead(200, contentTypes.plainType);
+      res.end("TABLE GENERATED?");
     });
 
     server.listen(this.port);
