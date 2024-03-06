@@ -11,8 +11,8 @@ const messages = {
   },
 
   path: {
-    lab3Path: "/lab3",
-  }
+    lab5Path: "/lab5",
+  },
 };
 
 module.exports = messages;

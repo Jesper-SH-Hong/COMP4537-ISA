@@ -24,26 +24,30 @@ class Server {
   }
 
   start() {
-    const server = http.createServer((req, res) => {
-      con.connect(function (err) {
-        if (err) throw err;
-        console.log("Connected!");
-        var sql =
-          "CREATE TABLE patient (patientID INT(11) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), dateOfBirth DATETIME)";
-        con.query(sql, function (err, result) {
+    const q = url.parse(req.url, true);
+    const lab5Path = messages.path.lab5Path;
+
+    if (q.pathname === lab5Path) {
+      const server = http.createServer((req, res) => {
+        con.connect(function (err) {
           if (err) throw err;
-          console.log("Table created");
+          console.log("Connected!");
+          var sql =
+            "CREATE TABLE patient (patientID INT(11) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), dateOfBirth DATETIME)";
+          con.query(sql, function (err, result) {
+            if (err) throw err;
+            console.log("Table created");
+          });
         });
+
+        res.setHeader("Access-Control-Allow-Origin", "*");
+
+        res.writeHead(200, contentTypes.plainType);
+        res.end("TABLE GENERATED?");
       });
 
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      const q = url.parse(req.url, true);
-
-      res.writeHead(200, contentTypes.plainType);
-      res.end("TABLE GENERATED?");
-    });
-
-    server.listen(this.port);
+      server.listen(this.port);
+    }
   }
 }
 
