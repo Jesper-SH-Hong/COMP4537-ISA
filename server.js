@@ -49,7 +49,7 @@ class Server {
             res.end();
           } else {
             res.writeHead(STATUS.OK);
-            res.end(JSON.stringify(result));
+            res.end(JSON.stringify({ status: "success", data: result }));
           }
         });
       } else if (q.pathname == `${lab5Path}/post`) {
@@ -60,7 +60,7 @@ class Server {
             res.end();
           } else {
             res.writeHead(STATUS.OK);
-            res.end(JSON.stringify(result));
+            res.end(JSON.stringify({ status: "success", data: result }));
           }
         });
       }
