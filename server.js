@@ -54,15 +54,30 @@ class Server {
         });
       } else if (q.pathname == `${lab5Path}/post`) {
         console.log("POST CALLED!!");
-        con.query(q.query.query, (err, result) => {
-          if (err) {
-            res.status(500).json({ error: err });
-            res.end();
-          } else {
-            res.writeHead(STATUS.OK);
-            res.end(JSON.stringify({ status: "success", data: result }));
-          }
-        });
+
+        if (req.headers["access-control-request-method"]) {
+          res.setHeader("Access-Control-Allow-Origin", "*");
+          res.setHeader("Access-Control-Allow-Methods", "POST");
+          res.end();
+        } else {
+          let body = "";
+          req.on("data", (chunk) => {
+            body += chunk;
+          });
+          req.on("end", () => {
+            console.log(body);
+
+            con.query(body, (err, result) => {
+              if (err) {
+                res.status(500).json({ error: err });
+                res.end();
+              } else {
+                res.writeHead(STATUS.OK);
+                res.end(JSON.stringify({ status: "success", data: result }));
+              }
+            });
+          });
+        }
       }
     });
 
