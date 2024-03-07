@@ -24,11 +24,10 @@ class Server {
   }
 
   start() {
-    const q = url.parse(req.url, true);
-    const lab5Path = messages.path.lab5Path;
-
-    if (q.pathname === lab5Path) {
-      const server = http.createServer((req, res) => {
+    const server = http.createServer((req, res) => {
+      const q = url.parse(req.url, true);
+      const lab5Path = messages.path.lab5Path;
+      if (q.pathname === lab5Path) {
         con.connect(function (err) {
           if (err) throw err;
           console.log("Connected!");
@@ -39,15 +38,15 @@ class Server {
             console.log("Table created");
           });
         });
+      }
 
-        res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Origin", "*");
 
-        res.writeHead(200, contentTypes.plainType);
-        res.end("TABLE GENERATED?");
-      });
+      res.writeHead(200, contentTypes.plainType);
+      res.end("TABLE GENERATED?");
+    });
 
-      server.listen(this.port);
-    }
+    server.listen(this.port);
   }
 }
 
