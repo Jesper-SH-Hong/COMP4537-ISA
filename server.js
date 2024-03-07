@@ -27,23 +27,43 @@ class Server {
     const server = http.createServer((req, res) => {
       const q = url.parse(req.url, true);
       const lab5Path = messages.path.lab5Path;
-      if (q.pathname === lab5Path) {
-        con.connect(function (err) {
-          if (err) throw err;
-          console.log("Connected!");
-          var sql =
-            "CREATE TABLE patient (patientID INT(11) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), dateOfBirth DATETIME)";
-          con.query(sql, function (err, result) {
-            if (err) throw err;
-            console.log("Table created");
-          });
-        });
-      }
 
       res.setHeader("Access-Control-Allow-Origin", "*");
 
-      res.writeHead(200, contentTypes.plainType);
-      res.end("TABLE GENERATED?");
+      con.connect(function (err) {
+        if (err) throw err;
+        console.log("Connected!");
+        var sql =
+          "CREATE TABLE patient (patientID INT(11) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), dateOfBirth DATETIME)";
+        con.query(sql, function (err, result) {
+          if (err) throw err;
+          console.log("Table created");
+        });
+      });
+
+      if (q.pathname == `${lab5Path}/get`) {
+        console.log("GET CALLED!!");
+        con.query(q.query.query, (err, result) => {
+          if (err) {
+            res.status(500).json({ error: err });
+            res.end();
+          } else {
+            res.writeHead(STATUS.OK);
+            res.end(JSON.stringify(result));
+          }
+        });
+      } else if (q.pathname == `${lab5Path}/post`) {
+        console.log("POST CALLED!!");
+        con.query(q.query.query, (err, result) => {
+          if (err) {
+            res.status(500).json({ error: err });
+            res.end();
+          } else {
+            res.writeHead(STATUS.OK);
+            res.end(JSON.stringify(result));
+          }
+        });
+      }
     });
 
     server.listen(this.port);
