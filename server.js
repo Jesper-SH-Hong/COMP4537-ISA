@@ -11,9 +11,15 @@ const STATUS = {
 };
 
 const mysql = require("mysql");
-const con = mysql.createConnection({
+const db_admin = mysql.createConnection({
   host: "localhost",
   user: "jesperho_nodemysql",
+  password: "nodemysql123",
+  database: "jesperho_nodemysql",
+});
+const db_user = mysql.createConnection({
+  host: "localhost",
+  user: "jesperho_myUser",
   password: "nodemysql123",
   database: "jesperho_nodemysql",
 });
@@ -30,20 +36,25 @@ class Server {
 
       res.setHeader("Access-Control-Allow-Origin", "*");
 
-      con.connect(function (err) {
+      db_admin.connect(function (err) {
         if (err) throw err;
         console.log("Connected!");
         var sql =
           "CREATE TABLE patient (patientID INT(11) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), dateOfBirth DATETIME)";
-        con.query(sql, function (err, result) {
+        db_admin.query(sql, function (err, result) {
           if (err) throw err;
           console.log("Table created");
         });
       });
 
+      db_user.connect(function (err) {
+        if (err) throw err;
+        console.log("db user Connected!");
+      });
+
       if (q.pathname == `${lab5Path}/get`) {
         console.log("GET CALLED!!");
-        con.query(q.query.query, (err, result) => {
+        db_user.query(q.query.query, (err, result) => {
           if (err) {
             res.status(500).json({ error: err });
             res.end();
@@ -67,7 +78,7 @@ class Server {
           req.on("end", () => {
             console.log(body);
 
-            con.query(body, (err, result) => {
+            db_user.query(body, (err, result) => {
               if (err) {
                 res.status(500).json({ error: err });
                 res.end();
