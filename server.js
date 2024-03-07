@@ -39,9 +39,9 @@ class Server {
       db_admin.connect(function (err) {
         if (err) throw err;
         console.log("Connected!");
-        var sql =
-          "CREATE TABLE patient (patientID INT(11) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), dateOfBirth DATETIME)";
-        db_admin.query(sql, function (err, result) {
+        const tableGenerateSql =
+          "CREATE TABLE IF NOT EXISTS patient (patientID INT(11) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), dateOfBirth DATETIME)";
+        db_admin.query(tableGenerateSql, function (err, result) {
           if (err) throw err;
           console.log("Table created");
         });
