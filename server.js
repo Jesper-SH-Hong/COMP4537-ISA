@@ -27,6 +27,30 @@ const db_user = mysql.createConnection({
 class Server {
   constructor() {
     this.port = process.env.PORT || 3000;
+    this.db_admin = db_admin;
+    this.db_user = db_user;
+
+    this.db_admin.connect((err) => {
+      if (err) throw err;
+      console.log("Admin DB Connected!");
+      const tableGenerateSql =
+        "CREATE TABLE IF NOT EXISTS patient (patientID INT(11) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), dateOfBirth DATETIME)";
+      this.db_admin.query(tableGenerateSql, (err, result) => {
+        if (err) throw err;
+        console.log("Table created");
+
+        //disconnect db_admin connection
+        this.db_admin.end((err) => {
+          if (err) throw err;
+          console.log("Admin DB Connection closed.");
+        });
+      });
+    });
+
+    this.db_user.connect(function (err) {
+      if (err) throw err;
+      console.log("db user Connected!");
+    });
   }
 
   start() {
@@ -35,26 +59,11 @@ class Server {
       const lab5Path = messages.path.lab5Path;
 
       res.setHeader("Access-Control-Allow-Origin", "*");
-
-      db_admin.connect(function (err) {
-        if (err) throw err;
-        console.log("Connected!");
-        const tableGenerateSql =
-          "CREATE TABLE IF NOT EXISTS patient (patientID INT(11) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100), dateOfBirth DATETIME)";
-        db_admin.query(tableGenerateSql, function (err, result) {
-          if (err) throw err;
-          console.log("Table created");
-        });
-      });
-
-      db_user.connect(function (err) {
-        if (err) throw err;
-        console.log("db user Connected!");
-      });
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
 
       if (q.pathname == `${lab5Path}/get`) {
         console.log("GET CALLED!!");
-        db_user.query(q.query.query, (err, result) => {
+        this.db_user.query(q.query.query, (err, result) => {
           if (err) {
             res.status(500).json({ error: err });
             res.end();
@@ -65,9 +74,8 @@ class Server {
         });
       } else if (q.pathname == `${lab5Path}/post`) {
         console.log("POST CALLED!!");
-
+        // handle preflight request for POST
         if (req.headers["access-control-request-method"]) {
-          res.setHeader("Access-Control-Allow-Origin", "*");
           res.setHeader("Access-Control-Allow-Methods", "POST");
           res.end();
         } else {
@@ -77,8 +85,7 @@ class Server {
           });
           req.on("end", () => {
             console.log(body);
-
-            db_user.query(body, (err, result) => {
+            this.db_user.query(body, (err, result) => {
               if (err) {
                 res.writeHead(500).json({ error: err });
                 res.end();
@@ -90,6 +97,14 @@ class Server {
           });
         }
       }
+    });
+
+    // close db_user connection when server is closed
+    server.on("close", () => {
+      this.db_user.end((err) => {
+        if (err) throw err;
+        console.log("DB Connection closed.");
+      });
     });
 
     server.listen(this.port);
