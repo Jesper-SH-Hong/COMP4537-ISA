@@ -65,7 +65,9 @@ class Server {
         console.log("GET CALLED!!");
         this.db_user.query(q.query.query, (err, result) => {
           if (err) {
-            res.status(500).json({ error: err });
+            res.writeHead(500);
+            const errorMessage = err.message || "Internal Server Error";
+            res.write(errorMessage);
             res.end();
           } else {
             res.writeHead(STATUS.OK);
@@ -87,7 +89,9 @@ class Server {
             console.log(body);
             this.db_user.query(body, (err, result) => {
               if (err) {
-                res.writeHead(500).json({ error: err });
+                res.writeHead(500);
+                const errorMessage = err.message || "Internal Server Error";
+                res.write(errorMessage);
                 res.end();
               } else {
                 res.writeHead(STATUS.OK);
