@@ -62,12 +62,18 @@ class Server {
       res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
 
       if (q.pathname == `${lab5Path}/get`) {
-        console.log("GET CALLED!!");
+        console.log("Recieved GET request");
         this.db_user.query(q.query.query, (err, result) => {
           if (err) {
             res.writeHead(500);
             const errorMessage = err.message || "Internal Server Error";
-            res.write(errorMessage);
+            const errorResponse = {
+              status: "error",
+              message: errorMessage,
+            };
+
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.write(JSON.stringify(errorResponse));
             res.end();
           } else {
             res.writeHead(STATUS.OK);
@@ -75,7 +81,7 @@ class Server {
           }
         });
       } else if (q.pathname == `${lab5Path}/post`) {
-        console.log("POST CALLED!!");
+        console.log("Recieved POST request");
         // handle preflight request for POST
         if (req.headers["access-control-request-method"]) {
           res.setHeader("Access-Control-Allow-Methods", "POST");
@@ -86,12 +92,18 @@ class Server {
             body += chunk;
           });
           req.on("end", () => {
-            console.log(body);
+            console.log(`server recieved post request body: ${body}`);
             this.db_user.query(body, (err, result) => {
               if (err) {
                 res.writeHead(500);
                 const errorMessage = err.message || "Internal Server Error";
-                res.write(errorMessage);
+                const errorResponse = {
+                  status: "error",
+                  message: errorMessage,
+                };
+
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.write(JSON.stringify(errorResponse));
                 res.end();
               } else {
                 res.writeHead(STATUS.OK);
