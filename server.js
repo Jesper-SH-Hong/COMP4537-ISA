@@ -65,13 +65,11 @@ class Server {
         console.log("Recieved GET request");
         this.db_user.query(q.query.query, (err, result) => {
           if (err) {
-            res.writeHead(500);
             const errorMessage = err.message || "Internal Server Error";
             const errorResponse = {
               status: "error",
               message: errorMessage,
             };
-
             res.writeHead(500, { "Content-Type": "application/json" });
             res.write(JSON.stringify(errorResponse));
             res.end();
@@ -95,13 +93,11 @@ class Server {
             console.log(`server recieved post request body: ${body}`);
             this.db_user.query(body, (err, result) => {
               if (err) {
-                res.writeHead(500);
                 const errorMessage = err.message || "Internal Server Error";
                 const errorResponse = {
                   status: "error",
                   message: errorMessage,
                 };
-
                 res.writeHead(500, { "Content-Type": "application/json" });
                 res.write(JSON.stringify(errorResponse));
                 res.end();
