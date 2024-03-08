@@ -80,7 +80,7 @@ class Server {
 
             db_user.query(body, (err, result) => {
               if (err) {
-                res.status(500).json({ error: err });
+                res.writeHead(500).json({ error: err });
                 res.end();
               } else {
                 res.writeHead(STATUS.OK);
